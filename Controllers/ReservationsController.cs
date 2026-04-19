@@ -1,0 +1,100 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using reservations_api.Database;
+using reservations_api.Models;
+
+namespace reservations_api.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ReservationsController : ControllerBase
+    {
+        [HttpGet]
+        public ActionResult<List<Reservation>> GetAll()
+        {
+            var reservations = DataStorage.Reservations.AsEnumerable();
+
+            return Ok(reservations.ToList());
+        }
+
+        [HttpGet]
+        public ActionResult<List<Reservation>> GetAllWithOptionalParameters
+            (
+                [FromQuery] DateOnly? date,
+                [FromQuery] string? status,
+                [FromQuery] int? roomId,
+                [FromQuery] string? topic
+            )
+        {
+            var reservations = DataStorage.Reservations.AsEnumerable();
+
+            if (date.HasValue)
+            {
+                reservations = reservations.Where(r => r.Date == date).ToList();
+            }
+            if (!string.IsNullOrEmpty(status))
+            {
+                reservations = reservations
+                    .Where(r => r.Status == status).ToList();
+            }
+            if (roomId.HasValue)
+            {
+                reservations = reservations
+                    .Where(r => r.RoomId == roomId).ToList();
+            }
+            if (!string.IsNullOrEmpty(topic))
+            {
+                reservations = reservations
+                    .Where(r => r.Topic == topic).ToList();
+            }
+
+            if (!reservations.Any())
+            {
+                return NotFound("Rooms with such filter parameters do not exist");
+            }
+
+            return Ok(reservations);
+        }
+
+        [HttpGet]
+        [Route("{id:int}")]
+        public ActionResult<Reservation> GetById(int id)
+        {
+            var reservation = DataStorage.Reservations.FirstOrDefault(r => r.Id == id);
+
+            if (reservation == null)
+            {
+                return NotFound($"Reservation with id {id} does not exist");
+            }
+
+            return Ok(reservation);
+        }
+
+        [HttpPost]
+        public ActionResult<Reservation> CreateReservation(Reservation reservation)
+        {
+            int roomId = reservation.RoomId;
+
+            var room = DataStorage.Rooms.FirstOrDefault(r => r.Id == roomId);
+
+            if (room == null)
+            {
+                return NotFound($"Room with id {roomId} does not exist. Cannot reserve it");
+            }
+
+            if (!room.IsActive)
+            {
+                return BadRequest($"Cannot reserve inactive room with id {roomId}");
+            }
+
+            var isOccupied = DataStorage.Reservations
+                .Exists(r => r.RoomId == roomId && r.Date == reservation.Date);
+
+            if (isOccupied)
+            {
+                return Conflict($"New reservation overlaps in time with an existing reservation for the room with id {roomId}");
+            }
+
+            return Ok();
+        }
+    }
+}
