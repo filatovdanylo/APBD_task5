@@ -121,6 +121,14 @@ namespace reservations_api.Controllers
                 return NotFound($"Room with id {id} does not exist");
             }
 
+            bool hasFutureReservations = DataStorage.Reservations
+                .Exists(r => r.RoomId == room.Id && r.Date >= DateOnly.FromDateTime(DateTime.Now));
+
+            if (hasFutureReservations)
+            {
+                return Conflict($"Room with id {id} has future reservations. Cannot delete");
+            }
+
             DataStorage.Rooms.Remove(room);
 
             return NoContent();

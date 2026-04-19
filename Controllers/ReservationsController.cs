@@ -81,6 +81,11 @@ namespace reservations_api.Controllers
                 return NotFound($"Room with id {roomId} does not exist. Cannot reserve it");
             }
 
+            if (reservation.StartTime > reservation.EndTime)
+            {
+                return BadRequest("Starting time of reservation should be smaller than end time");
+            }
+
             if (!room.IsActive)
             {
                 return BadRequest($"Cannot reserve inactive room with id {roomId}");
@@ -91,10 +96,10 @@ namespace reservations_api.Controllers
 
             if (isOccupied)
             {
-                return Conflict($"New reservation overlaps in time with an existing reservation for the room with id {roomId}");
+                return Conflict($"Two reservations for the same room with id {roomId} cannot overlap on the same day");
             }
 
-            return Ok();
+            return CreatedAtAction(nameof(GetById), new { id = reservation.Id }, reservation);
         }
     }
 }
