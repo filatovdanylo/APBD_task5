@@ -86,7 +86,7 @@ namespace reservations_api.Controllers
                 return BadRequest("Id in URL does not match the id in the request body");
             }
 
-            var databaseRoom = GetById(id).Value;
+            var databaseRoom = DataStorage.Rooms.FirstOrDefault(r => r.Id == id);
 
             if (databaseRoom == null)
             {
@@ -106,7 +106,7 @@ namespace reservations_api.Controllers
         [HttpDelete("{id:int}")]
         public IActionResult DeleteRoom(int id)
         {
-            var room = GetById(id).Value;
+            var room = DataStorage.Rooms.FirstOrDefault(r => r.Id == id);
 
             if (room == null)
             {
