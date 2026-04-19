@@ -101,5 +101,47 @@ namespace reservations_api.Controllers
 
             return CreatedAtAction(nameof(GetById), new { id = reservation.Id }, reservation);
         }
+
+        [HttpPut("{id:int}")]
+        public ActionResult<Reservation> UpdateReservation(int id, Reservation reservation)
+        {
+
+            if (id != reservation.Id)
+            {
+                return BadRequest("Id in URL does not match the id in the request body");
+            }
+
+            var databaseReservation = GetById(id).Value;
+
+            if (databaseReservation == null)
+            {
+                return NotFound($"Reservation with id {id} does not exist");
+            }
+
+            databaseReservation.RoomId = reservation.RoomId;
+            databaseReservation.OrganizerName = reservation.OrganizerName;
+            databaseReservation.Topic = reservation.Topic;
+            databaseReservation.Date = reservation.Date;
+            databaseReservation.StartTime = reservation.StartTime;
+            databaseReservation.EndTime = reservation.EndTime;
+            databaseReservation.Status = reservation.Status;
+
+            return Ok(databaseReservation);
+        }
+
+        [HttpDelete("{id:int}")]
+        public IActionResult Delete(int id)
+        {
+            var reservation = GetById(id).Value;
+
+            if (reservation == null)
+            {
+                return NotFound($"Reservation with id {id} does not exist");
+            }
+
+            DataStorage.Reservations.Remove(reservation);
+
+            return NoContent();
+        }
     }
 }

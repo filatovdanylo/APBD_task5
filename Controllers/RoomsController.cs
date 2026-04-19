@@ -86,7 +86,7 @@ namespace reservations_api.Controllers
             return CreatedAtAction(nameof(GetById), new { id = room.Id }, room);
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("{id:int}")]
         public ActionResult<Room> UpdateRoom(int id, Room room)
         {
             if (id != room.Id)
@@ -111,7 +111,7 @@ namespace reservations_api.Controllers
             return Ok(databaseRoom);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:int}")]
         public IActionResult DeleteRoom(int id)
         {
             var room = GetById(id).Value;
@@ -122,7 +122,9 @@ namespace reservations_api.Controllers
             }
 
             bool hasFutureReservations = DataStorage.Reservations
-                .Exists(r => r.RoomId == room.Id && r.Date >= DateOnly.FromDateTime(DateTime.Now));
+                .Exists(r => r.RoomId == room.Id 
+                && r.Date >= DateOnly.FromDateTime(DateTime.Now) 
+                && !r.Status.Equals("cancelled"));
 
             if (hasFutureReservations)
             {
