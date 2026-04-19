@@ -8,13 +8,6 @@ namespace reservations_api.Controllers
     [Route("api/[controller]")]
     public class ReservationsController : ControllerBase
     {
-        [HttpGet]
-        public ActionResult<List<Reservation>> GetAll()
-        {
-            var reservations = DataStorage.Reservations.AsEnumerable();
-
-            return Ok(reservations.ToList());
-        }
 
         [HttpGet]
         public ActionResult<List<Reservation>> GetAllWithOptionalParameters

@@ -9,14 +9,6 @@ namespace reservations_api.Controllers
     public class RoomsController : ControllerBase
     {
         [HttpGet]
-        public ActionResult<List<Room>> GetAll()
-        {
-            var rooms = DataStorage.Rooms.AsEnumerable();
-
-            return Ok(rooms.ToList());
-        }
-
-        [HttpGet]
         public ActionResult<List<Room>> GetAllWithOptionalParameters
             (
                 [FromQuery] int? minCapacity,
