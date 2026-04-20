@@ -42,7 +42,7 @@ namespace reservations_api.Controllers
 
             if (!reservations.Any())
             {
-                return NotFound("Rooms with such filter parameters do not exist");
+                return NotFound("Reservations with such filter parameters do not exist");
             }
 
             return Ok(reservations);
@@ -71,6 +71,10 @@ namespace reservations_api.Controllers
             {
                 return error;
             }
+
+            int newId = DataStorage.NextReservationId;
+
+            reservation.Id = newId;
 
             DataStorage.Reservations.Add(reservation);
 
@@ -141,8 +145,11 @@ namespace reservations_api.Controllers
             if (!room.IsActive)
                 return BadRequest($"Cannot reserve inactive room with id {roomId}");
 
-            var isOccupied = DataStorage.Reservations
-                .Exists(r => r.RoomId == roomId && r.Date == reservation.Date);
+            bool isOccupied = DataStorage.Reservations
+                .Exists(r => r.Id != reservation.Id && r.RoomId == roomId 
+                && r.Date == reservation.Date
+                && r.EndTime > reservation.StartTime && r.StartTime < reservation.EndTime
+                && !r.Status.Equals("cancelled", StringComparison.OrdinalIgnoreCase));
 
             if (isOccupied)
                 return Conflict($"Two reservations for the same room with id {roomId} cannot overlap on the same day");
